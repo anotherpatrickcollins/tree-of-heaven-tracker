@@ -1,0 +1,17 @@
+{
+  "name": "location-tracker",
+  "version": "1.0.0",
+  "description": "Lightweight location tracking webapp",
+  "main": "backend.js",
+  "scripts": {
+    "start": "node backend.js",
+    "dev": "node backend.js"
+  },
+  "keywords": [
+    "location",
+    "tracker",
+    "app"
+  ],
+  "author": "",
+  "license": "MIT"
+}

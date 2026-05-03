@@ -1,0 +1,2018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tree of Heaven Tracker</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f3f4f6;
+      color: #1f2937;
+      padding-bottom: 0;
+      overflow: hidden;
+    }
+
+    .container {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      background: white;
+      padding: 14px 16px;
+      border-bottom: 1px solid #e5e7eb;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    header h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1f2937;
+      flex: 1;
+      text-align: left;
+      margin: 0;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .view-switcher {
+      display: flex;
+      gap: 8px;
+      border-radius: 8px;
+      background: #f3f4f6;
+      padding: 4px;
+    }
+
+    .view-switcher button {
+      padding: 6px 14px;
+      border: none;
+      background: transparent;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7280;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .view-switcher button.active {
+      background: white;
+      color: #6366f1;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .theme-toggle {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #6b7280;
+      padding: 8px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      border-radius: 8px;
+    }
+
+    .theme-toggle:hover {
+      color: #1f2937;
+      background: #f3f4f6;
+    }
+
+    /* Dark Mode */
+    body.dark-mode {
+      background: #1f2937;
+      color: #f3f4f6;
+    }
+
+    body.dark-mode header {
+      background: #111827;
+      border-bottom-color: #374151;
+    }
+
+    body.dark-mode header h1 {
+      color: #f3f4f6;
+    }
+
+    body.dark-mode .view-switcher {
+      background: #374151;
+    }
+
+    body.dark-mode .view-switcher button {
+      color: #9ca3af;
+    }
+
+    body.dark-mode .view-switcher button.active {
+      background: #1f2937;
+      color: #60a5fa;
+    }
+
+    body.dark-mode .theme-toggle {
+      color: #9ca3af;
+    }
+
+    body.dark-mode .theme-toggle:hover {
+      color: #f3f4f6;
+      background: #374151;
+    }
+
+    body.dark-mode #mapContainer {
+      filter: invert(0.93) hue-rotate(180deg);
+    }
+
+    body.dark-mode .info-card {
+      background: #111827;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.5);
+    }
+
+    body.dark-mode .empty-card {
+      color: #9ca3af;
+    }
+
+    body.dark-mode .empty-card h3 {
+      color: #d1d5db;
+    }
+
+    body.dark-mode .location-title h2 {
+      color: #f3f4f6;
+    }
+
+    body.dark-mode .location-subtitle,
+    body.dark-mode .location-address {
+      color: #9ca3af;
+    }
+
+    body.dark-mode .metrics {
+      background: #374151;
+    }
+
+    body.dark-mode .metric-label {
+      color: #6b7280;
+    }
+
+    body.dark-mode .metric-value {
+      color: #f3f4f6;
+    }
+
+    body.dark-mode .description-text {
+      color: #d1d5db;
+    }
+
+    body.dark-mode .coordinates {
+      background: #374151;
+    }
+
+    body.dark-mode .coord-value {
+      color: #f3f4f6;
+    }
+
+    body.dark-mode .fab {
+      box-shadow: 0 6px 24px rgba(236, 72, 153, 0.6);
+    }
+
+    body.dark-mode button {
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    body.dark-mode button.secondary {
+      background: #374151;
+      color: #f3f4f6;
+      border-color: #4b5563;
+    }
+
+    body.dark-mode button.secondary:hover {
+      background: #4b5563;
+    }
+
+    body.dark-mode #listSection {
+      background: #111827;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.5);
+    }
+
+    body.dark-mode .list-search input {
+      background: #374151;
+      border-color: #4b5563;
+      color: #f3f4f6;
+    }
+
+    body.dark-mode .list-search input::placeholder {
+      color: #9ca3af;
+    }
+
+    body.dark-mode .list-search input:focus {
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+    }
+
+    body.dark-mode .filter-chip {
+      border-color: #4b5563;
+      background: #374151;
+      color: #d1d5db;
+    }
+
+    body.dark-mode .filter-chip:hover {
+      border-color: #60a5fa;
+      color: #60a5fa;
+    }
+
+    body.dark-mode .filter-chip.active {
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      color: white;
+      border-color: transparent;
+    }
+
+    body.dark-mode .list-entry-card {
+      border-color: #374151;
+      background: #1f2937;
+    }
+
+    body.dark-mode .list-entry-card:hover {
+      border-color: #60a5fa;
+      box-shadow: 0 4px 12px rgba(96, 165, 250, 0.2);
+    }
+
+    body.dark-mode .list-entry-card.selected {
+      border-color: #60a5fa;
+      background: #1e3a5f;
+    }
+
+    body.dark-mode .list-entry-address {
+      color: #f3f4f6;
+    }
+
+    body.dark-mode .list-entry-meta {
+      color: #9ca3af;
+    }
+
+    body.dark-mode .bottom-sheet {
+      background: #111827;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.5);
+    }
+
+    body.dark-mode .sheet-header {
+      border-bottom-color: #374151;
+    }
+
+    body.dark-mode .sheet-header h2 {
+      color: #f3f4f6;
+    }
+
+    body.dark-mode .sheet-handle {
+      background: #4b5563;
+    }
+
+    body.dark-mode .close-btn {
+      color: #6b7280;
+    }
+
+    body.dark-mode .close-btn:hover {
+      color: #d1d5db;
+    }
+
+    body.dark-mode label {
+      color: #f3f4f6;
+    }
+
+    body.dark-mode input[type="text"],
+    body.dark-mode input[type="date"],
+    body.dark-mode input[type="search"],
+    body.dark-mode textarea {
+      background: #374151;
+      border-color: #4b5563;
+      color: #f3f4f6;
+    }
+
+    body.dark-mode input::placeholder,
+    body.dark-mode textarea::placeholder {
+      color: #9ca3af;
+    }
+
+    body.dark-mode input:focus,
+    body.dark-mode textarea:focus {
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+    }
+
+    body.dark-mode .checkbox-group {
+      background: #374151;
+    }
+
+    body.dark-mode .form-group,
+    body.dark-mode .checkbox-label {
+      color: #f3f4f6;
+    }
+
+    body.dark-mode .backdrop {
+      background: rgba(0,0,0,0.5);
+    }
+
+    body.dark-mode input[readonly] {
+      background: #374151;
+      color: #9ca3af;
+    }
+
+    body.dark-mode .description-label {
+      color: #d1d5db;
+    }
+
+    body.dark-mode .empty-state {
+      color: #9ca3af;
+    }
+
+    body.dark-mode .stats-overview h3 {
+      color: #f3f4f6;
+    }
+
+    body.dark-mode .stat-box {
+      background: #374151;
+      border-color: #4b5563;
+    }
+
+    body.dark-mode .stat-number {
+      color: #60a5fa;
+    }
+
+    body.dark-mode .stat-label {
+      color: #9ca3af;
+    }
+
+    body.dark-mode .overview-text {
+      color: #d1d5db;
+    }
+
+    body.dark-mode .quick-toggle {
+      background: #374151;
+      border-color: #4b5563;
+    }
+
+    body.dark-mode .toggle-label {
+      color: #f3f4f6;
+    }
+
+    /* Map Section */
+    .map-section {
+      flex: 1;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #mapContainer {
+      flex: 0.55;
+      width: 100%;
+      position: relative;
+    }
+
+    /* Floating Action Button */
+    .fab {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+      color: white;
+      border: none;
+      font-size: 28px;
+      cursor: pointer;
+      box-shadow: 0 6px 24px rgba(217, 119, 6, 0.4);
+      z-index: 500;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .fab:hover {
+      transform: scale(1.1);
+      box-shadow: 0 8px 32px rgba(217, 119, 6, 0.5);
+    }
+
+    .fab:active {
+      transform: scale(0.95);
+    }
+
+    /* Info Card */
+    .info-card {
+      flex: 0.45;
+      background: white;
+      border-radius: 24px 24px 0 0;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.1);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-content {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-y: auto;
+    }
+
+    .stats-overview {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .stats-overview h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 4px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat-box {
+      background: #f9fafb;
+      padding: 10px;
+      border-radius: 8px;
+      text-align: center;
+      border: 1px solid #e5e7eb;
+    }
+
+    .stat-number {
+      font-size: 18px;
+      font-weight: 700;
+      color: #6366f1;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #9ca3af;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    .overview-text {
+      font-size: 12px;
+      color: #6b7280;
+      line-height: 1.4;
+    }
+
+    /* Quick Toggle */
+    .quick-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      gap: 12px;
+    }
+
+    .toggle-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #1f2937;
+      flex: 1;
+    }
+
+    .toggle-checkbox {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: #10b981;
+    }
+
+    body.dark-mode .quick-toggle {
+      background: #374151;
+      border-color: #4b5563;
+    }
+
+    body.dark-mode .toggle-label {
+      color: #f3f4f6;
+    }
+
+    body.dark-mode .toggle-checkbox {
+      accent-color: #10b981;
+    }
+
+    /* Location Header */
+    .location-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .location-title {
+      flex: 1;
+    }
+
+    .location-title h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 4px;
+    }
+
+    .location-subtitle {
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .location-address {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 13px;
+      color: #6b7280;
+      margin-top: 8px;
+    }
+
+    .location-address svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* Status Badge */
+    .status-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .status-badge.treated {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status-badge.untreated {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    /* Metrics Section */
+    .metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding: 16px;
+      background: #f9fafb;
+      border-radius: 12px;
+    }
+
+    .metric {
+      text-align: center;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #1f2937;
+    }
+
+    .metric-icon {
+      width: 20px;
+      height: 20px;
+      opacity: 0.6;
+    }
+
+    /* Description Section */
+    .description-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .description-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .description-text {
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.5;
+    }
+
+    .empty-state {
+      color: #9ca3af;
+      font-style: italic;
+    }
+
+    /* Coordinates */
+    .coordinates {
+      display: flex;
+      justify-content: space-around;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+
+    .coord {
+      text-align: center;
+    }
+
+    .coord-label {
+      font-size: 10px;
+      color: #9ca3af;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .coord-value {
+      color: #1f2937;
+      font-weight: 600;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      padding-top: 8px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button.secondary {
+      background: #f3f4f6;
+      color: #1f2937;
+      border: 2px solid #e5e7eb;
+    }
+
+    button.secondary:hover {
+      background: #e5e7eb;
+      box-shadow: none;
+    }
+
+    button.danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+
+    button.danger:hover {
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
+    }
+
+    /* Empty State */
+    .empty-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      text-align: center;
+      color: #9ca3af;
+    }
+
+    .empty-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+
+    /* Bottom Sheet Modal */
+    .bottom-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-radius: 24px 24px 0 0;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.2);
+      z-index: 2000;
+      max-height: 90vh;
+      overflow-y: auto;
+      display: none;
+      animation: slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .bottom-sheet.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sheet-handle {
+      width: 40px;
+      height: 4px;
+      background: #d1d5db;
+      border-radius: 2px;
+      margin: 12px auto;
+    }
+
+    .sheet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid #e5e7eb;
+      flex-shrink: 0;
+    }
+
+    .sheet-header h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1f2937;
+      margin: 0;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 28px;
+      cursor: pointer;
+      color: #d1d5db;
+      padding: 0;
+      width: 50px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
+      margin-left: 220px;
+      flex-shrink: 0;
+    }
+
+    .close-btn:hover {
+      color: #9ca3af;
+    }
+
+    .sheet-content {
+      padding: 20px;
+      flex: 1;
+    }
+
+    /* Form Styles */
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: #1f2937;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="search"],
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      background: white;
+      transition: all 0.2s;
+    }
+
+    input[type="text"]:focus,
+    input[type="date"]:focus,
+    input[type="search"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 10px;
+      margin-bottom: 0;
+    }
+
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: #6366f1;
+    }
+
+    .checkbox-label {
+      margin: 0;
+      cursor: pointer;
+      font-size: 14px;
+      color: #1f2937;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .geo-button {
+      flex: 0 0 auto;
+      padding: 10px 14px;
+      font-size: 16px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Backdrop */
+    .backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.2);
+      z-index: 1999;
+      display: none;
+    }
+
+    .backdrop.active {
+      display: block;
+    }
+
+    #geoStatus {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+
+    .coord-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .list-header {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .list-search {
+      flex: 1;
+    }
+
+    .list-search input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .list-search input:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .filter-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .filter-chip {
+      padding: 6px 12px;
+      border: 1px solid #e5e7eb;
+      background: white;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #6b7280;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-chip:hover {
+      border-color: #6366f1;
+      color: #6366f1;
+    }
+
+    .filter-chip.active {
+      background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+      color: white;
+      border-color: transparent;
+    }
+
+    .entries-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .list-entry-card {
+      padding: 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .list-entry-card:hover {
+      border-color: #6366f1;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .list-entry-card.selected {
+      border-color: #6366f1;
+      background: #f0f4ff;
+    }
+
+    .list-entry-address {
+      font-weight: 600;
+      font-size: 14px;
+      color: #1f2937;
+      margin-bottom: 4px;
+    }
+
+    .list-entry-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .list-entry-badge {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .list-entry-badge.treated {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .list-entry-badge.untreated {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .list-entry-edit {
+      background: none;
+      border: none;
+      color: #6366f1;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0;
+      transition: color 0.2s;
+    }
+
+    .list-entry-edit:hover {
+      color: #4f46e5;
+      text-decoration: underline;
+    }
+
+    body.dark-mode .list-entry-edit {
+      color: #60a5fa;
+    }
+
+    body.dark-mode .list-entry-edit:hover {
+      color: #93c5fd;
+    }
+
+    /* Photo Upload */
+    .photo-upload-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .photo-input-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .photo-input-wrapper input[type="file"] {
+      display: none;
+    }
+
+    .photo-input-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: #f9fafb;
+      border: 2px dashed #d1d5db;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #6b7280;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+
+    .photo-input-label:hover {
+      border-color: #6366f1;
+      color: #6366f1;
+      background: #f3f4f6;
+    }
+
+    .photo-preview {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+    }
+
+    .photo-preview img {
+      width: 100%;
+      height: auto;
+      max-height: 200px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .photo-remove-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(0,0,0,0.5);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .photo-remove-btn:hover {
+      background: rgba(0,0,0,0.7);
+    }
+
+    body.dark-mode .photo-input-label {
+      background: #374151;
+      border-color: #4b5563;
+      color: #9ca3af;
+    }
+
+    body.dark-mode .photo-input-label:hover {
+      border-color: #60a5fa;
+      color: #60a5fa;
+      background: #4b5563;
+    }
+
+    body.dark-mode .photo-preview {
+      background: #374151;
+      border-color: #4b5563;
+    }
+
+    .card-photo {
+      width: 100%;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      border: 1px solid #e5e7eb;
+      overflow: hidden;
+      max-height: 250px;
+    }
+
+    .card-photo img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      display: block;
+    }
+
+    body.dark-mode .card-photo {
+      border-color: #4b5563;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Tree of Heaven</h1>
+      <div class="header-controls">
+        <div class="view-switcher">
+          <button class="active" onclick="switchMainView('map')">Map</button>
+          <button onclick="switchMainView('list')">List</button>
+        </div>
+        <button class="theme-toggle" id="themeToggle" onclick="toggleDarkMode()" title="Toggle dark mode">🌙</button>
+      </div>
+    </header>
+
+    <div class="map-section">
+      <div id="mapContainer"></div>
+      <button class="fab" onclick="openAddModal()" title="Add new entry">+</button>
+
+      <div class="info-card">
+        <div id="selectedCard" class="card-content">
+          <div class="stats-overview">
+            <h3>Overview</h3>
+            <div class="stats-grid">
+              <div class="stat-box">
+                <div class="stat-number" id="statTotal">0</div>
+                <div class="stat-label">Total Sites</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-number" id="statTreated">0</div>
+                <div class="stat-label">Treated</div>
+              </div>
+            </div>
+            <div class="overview-text">
+              Tap a marker on the map to view details, or use the <strong>+</strong> button to add a new location.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- List View Section -->
+    <div id="listSection" style="display: none; flex: 1; overflow-y: auto; background: white; border-radius: 24px 24px 0 0; box-shadow: 0 -8px 32px rgba(0,0,0,0.1);">
+      <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+        <div class="list-header">
+          <div class="list-search">
+            <input type="search" id="listSearchInput" placeholder="Search locations..." onkeyup="filterListEntries()">
+          </div>
+        </div>
+        <div class="filter-chips">
+          <button class="filter-chip active" data-filter="all" onclick="setListFilter('all'); filterListEntries()">All</button>
+          <button class="filter-chip" data-filter="untreated" onclick="setListFilter('untreated'); filterListEntries()">Untreated</button>
+          <button class="filter-chip" data-filter="treated" onclick="setListFilter('treated'); filterListEntries()">Treated</button>
+        </div>
+        <div class="entries-container" id="entriesContainer">
+          <!-- Entries will be populated here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Backdrop -->
+  <div class="backdrop" onclick="closeAllModals()"></div>
+
+  <!-- Add Entry Modal -->
+  <div id="addModal" class="bottom-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <h2>Add Entry</h2>
+      <button type="button" class="close-btn" onclick="closeAddModal()">×</button>
+    </div>
+    <div class="sheet-content">
+      <form id="entryForm">
+        <div class="form-group">
+          <label for="address">Location Address</label>
+          <div style="display: flex; gap: 8px;">
+            <input
+              type="text"
+              id="address"
+              placeholder="Enter address or location name"
+              required
+            >
+            <button type="button" class="geo-button" id="geoButton" title="Capture location">L</button>
+          </div>
+          <div id="geoStatus"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="intersection">Intersection (Optional)</label>
+          <input
+            type="text"
+            id="intersection"
+            placeholder="e.g., Main St & Oak Ave"
+          >
+        </div>
+
+        <div class="coord-grid">
+          <div class="form-group">
+            <label for="latitude">Latitude</label>
+            <input type="text" id="latitude" placeholder="0.0000" readonly>
+          </div>
+          <div class="form-group">
+            <label for="longitude">Longitude</label>
+            <input type="text" id="longitude" placeholder="0.0000" readonly>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="entryDate">Date Found</label>
+          <input type="date" id="entryDate" required>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea
+            id="description"
+            placeholder="Add details about the location or observations (optional)"
+          ></textarea>
+        </div>
+
+        <div class="photo-upload-section">
+          <label style="font-size: 13px; font-weight: 600; color: #1f2937; margin-bottom: 4px;">Photo (Optional)</label>
+          <div class="photo-input-wrapper">
+            <input type="file" id="photoInput" accept="image/*">
+            <label for="photoInput" class="photo-input-label">📸 Choose Photo</label>
+          </div>
+          <div id="photoPreview"></div>
+        </div>
+
+        <div class="checkbox-group">
+          <input type="checkbox" id="treated">
+          <label for="treated" class="checkbox-label">Treated / Addressed</label>
+        </div>
+
+        <div id="treatmentDateGroup" class="form-group hidden">
+          <label for="treatmentDate">Date of Treatment</label>
+          <input type="date" id="treatmentDate">
+        </div>
+
+        <div class="button-group">
+          <button type="submit">Add Entry</button>
+          <button type="button" class="secondary" onclick="resetForm()">Clear</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Entry Modal -->
+  <div id="editModal" class="bottom-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <h2>Edit Entry</h2>
+      <button type="button" class="close-btn" onclick="closeEditModal()">×</button>
+    </div>
+    <div class="sheet-content">
+      <form id="editForm">
+        <input type="hidden" id="editId">
+
+        <div class="form-group">
+          <label for="editAddress">Location Address</label>
+          <input type="text" id="editAddress" required>
+        </div>
+
+        <div class="form-group">
+          <label for="editIntersection">Intersection (Optional)</label>
+          <input type="text" id="editIntersection" placeholder="e.g., Main St & Oak Ave">
+        </div>
+
+        <div class="coord-grid">
+          <div class="form-group">
+            <label for="editLatitude">Latitude</label>
+            <input type="text" id="editLatitude" readonly>
+          </div>
+          <div class="form-group">
+            <label for="editLongitude">Longitude</label>
+            <input type="text" id="editLongitude" readonly>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="editEntryDate">Date Found</label>
+          <input type="date" id="editEntryDate" required>
+        </div>
+
+        <div class="form-group">
+          <label for="editDescription">Description</label>
+          <textarea id="editDescription"></textarea>
+        </div>
+
+        <div class="photo-upload-section">
+          <label style="font-size: 13px; font-weight: 600; color: #1f2937; margin-bottom: 4px;">Photo (Optional)</label>
+          <div class="photo-input-wrapper">
+            <input type="file" id="editPhotoInput" accept="image/*">
+            <label for="editPhotoInput" class="photo-input-label">📸 Choose Photo</label>
+          </div>
+          <div id="editPhotoPreview"></div>
+        </div>
+
+        <div class="checkbox-group">
+          <input type="checkbox" id="editTreated">
+          <label for="editTreated" class="checkbox-label">Treated / Addressed</label>
+        </div>
+
+        <div id="editTreatmentDateGroup" class="form-group hidden">
+          <label for="editTreatmentDate">Date of Treatment</label>
+          <input type="date" id="editTreatmentDate">
+        </div>
+
+        <div class="button-group">
+          <button type="submit">Save Changes</button>
+          <button type="button" class="danger">Delete</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API = '/api/entries';
+    let currentEditId = null;
+    let selectedEntryId = null;
+    let mapInstance = null;
+    let markers = {};
+    let currentListFilter = 'all';
+    let listSearchQuery = '';
+    let photoData = null;
+    let editPhotoData = null;
+
+    // Initialize
+    document.getElementById('entryDate').valueAsDate = new Date();
+    document.getElementById('editEntryDate').valueAsDate = new Date();
+
+    // Initialize on load
+    window.addEventListener('load', () => {
+      initializeDarkMode();
+      setTimeout(initializeMap, 100);
+      loadEntries();
+      setupEventListeners();
+    });
+
+    function setupEventListeners() {
+      // Photo uploads
+      document.getElementById('photoInput').addEventListener('change', handlePhotoSelect);
+      document.getElementById('editPhotoInput').addEventListener('change', handleEditPhotoSelect);
+
+      // Geolocation button
+      document.getElementById('geoButton').addEventListener('click', captureLocation);
+
+      // Treatment checkbox
+      document.getElementById('treated').addEventListener('change', (e) => {
+        document.getElementById('treatmentDateGroup').classList.toggle('hidden', !e.target.checked);
+        if (e.target.checked && !document.getElementById('treatmentDate').value) {
+          document.getElementById('treatmentDate').valueAsDate = new Date();
+        }
+      });
+
+      document.getElementById('editTreated').addEventListener('change', (e) => {
+        document.getElementById('editTreatmentDateGroup').classList.toggle('hidden', !e.target.checked);
+        if (e.target.checked && !document.getElementById('editTreatmentDate').value) {
+          document.getElementById('editTreatmentDate').valueAsDate = new Date();
+        }
+      });
+
+      // Forms
+      document.getElementById('entryForm').addEventListener('submit', submitEntry);
+      document.getElementById('editForm').addEventListener('submit', submitEdit);
+      document.getElementById('editForm').querySelector('button.danger').addEventListener('click', (e) => {
+        e.preventDefault();
+        if (confirm('Delete this entry?')) {
+          deleteEntry(currentEditId);
+        }
+      });
+
+      // Backdrop
+      document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('backdrop')) {
+          closeAllModals();
+        }
+      });
+    }
+
+    function handlePhotoSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Photo must be smaller than 5MB');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        photoData = event.target.result;
+        displayPhotoPreview(photoData, 'photoPreview');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleEditPhotoSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Photo must be smaller than 5MB');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        editPhotoData = event.target.result;
+        displayPhotoPreview(editPhotoData, 'editPhotoPreview');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function displayPhotoPreview(dataUrl, containerId) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = `
+        <div class="photo-preview">
+          <img src="${dataUrl}" alt="Preview">
+          <button type="button" class="photo-remove-btn" onclick="removePhoto('${containerId}')">Remove</button>
+        </div>
+      `;
+    }
+
+    function removePhoto(containerId) {
+      document.getElementById(containerId).innerHTML = '';
+      if (containerId === 'photoPreview') {
+        photoData = null;
+        document.getElementById('photoInput').value = '';
+      } else {
+        editPhotoData = null;
+        document.getElementById('editPhotoInput').value = '';
+      }
+    }
+
+    function captureLocation() {
+      const btn = document.getElementById('geoButton');
+      const status = document.getElementById('geoStatus');
+
+      if (!navigator.geolocation) {
+        status.textContent = 'Geolocation not supported';
+        return;
+      }
+
+      btn.textContent = '...';
+      btn.disabled = true;
+      status.textContent = 'Getting location...';
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude.toFixed(6);
+          const lng = position.coords.longitude.toFixed(6);
+
+          document.getElementById('latitude').value = lat;
+          document.getElementById('longitude').value = lng;
+
+          btn.textContent = 'L';
+          status.textContent = 'Location captured';
+          btn.disabled = false;
+        },
+        (error) => {
+          btn.textContent = 'L';
+          btn.disabled = false;
+          status.textContent = 'Unable to get location';
+        }
+      );
+    }
+
+    async function submitEntry(e) {
+      e.preventDefault();
+
+      const entry = {
+        address: document.getElementById('address').value,
+        intersection: document.getElementById('intersection').value || null,
+        latitude: parseFloat(document.getElementById('latitude').value) || null,
+        longitude: parseFloat(document.getElementById('longitude').value) || null,
+        description: document.getElementById('description').value,
+        entryDate: document.getElementById('entryDate').value,
+        treated: document.getElementById('treated').checked,
+        treatmentDate: document.getElementById('treated').checked ? document.getElementById('treatmentDate').value : null,
+        photo: photoData || null
+      };
+
+      try {
+        const res = await fetch(API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(entry)
+        });
+
+        if (res.ok) {
+          resetForm();
+          closeAddModal();
+          loadEntries();
+        }
+      } catch (err) {
+        alert('Error adding entry');
+      }
+    }
+
+    function resetForm() {
+      document.getElementById('entryForm').reset();
+      document.getElementById('entryDate').valueAsDate = new Date();
+      document.getElementById('latitude').value = '';
+      document.getElementById('longitude').value = '';
+      document.getElementById('geoStatus').textContent = '';
+      document.getElementById('treatmentDateGroup').classList.add('hidden');
+      photoData = null;
+      document.getElementById('photoPreview').innerHTML = '';
+    }
+
+    async function loadEntries() {
+      try {
+        const res = await fetch(API);
+        const entries = await res.json();
+        window.entries = entries;
+        renderMapMarkers();
+        renderListEntries();
+        updateStatsOverview();
+      } catch (err) {
+        console.error('Error loading entries:', err);
+      }
+    }
+
+    function updateStatsOverview() {
+      const entries = window.entries || [];
+      const treated = entries.filter(e => e.treated).length;
+
+      document.getElementById('statTotal').textContent = entries.length;
+      document.getElementById('statTreated').textContent = treated;
+    }
+
+    function switchMainView(view) {
+      // Update buttons
+      document.querySelectorAll('.view-switcher button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      // Update views
+      const mapSection = document.querySelector('.map-section');
+      const listSection = document.getElementById('listSection');
+
+      if (view === 'map') {
+        mapSection.style.display = 'flex';
+        listSection.style.display = 'none';
+      } else {
+        mapSection.style.display = 'none';
+        listSection.style.display = 'flex';
+        listSection.style.flexDirection = 'column';
+        renderListEntries();
+      }
+    }
+
+    function renderListEntries() {
+      const container = document.getElementById('entriesContainer');
+      let entries = window.entries || [];
+
+      // Apply filter
+      if (currentListFilter === 'treated') {
+        entries = entries.filter(e => e.treated);
+      } else if (currentListFilter === 'untreated') {
+        entries = entries.filter(e => !e.treated);
+      }
+
+      // Apply search
+      if (listSearchQuery) {
+        entries = entries.filter(e => {
+          const address = (e.address || '').toLowerCase();
+          const description = (e.description || '').toLowerCase();
+          return address.includes(listSearchQuery) || description.includes(listSearchQuery);
+        });
+      }
+
+      // Sort by newest first
+      entries.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      if (entries.length === 0) {
+        container.innerHTML = '<div style="text-align: center; color: #9ca3af; padding: 20px; font-size: 14px;">No entries found</div>';
+        return;
+      }
+
+      container.innerHTML = entries.map(entry => `
+        <div class="list-entry-card ${selectedEntryId === entry.id ? 'selected' : ''}" onclick="selectFromList('${entry.id}')">
+          <div class="list-entry-address">${escapeHtml(entry.address || 'No address')}</div>
+          <div class="list-entry-meta">
+            <span>${formatDate(entry.entryDate)}</span>
+            <span class="list-entry-badge ${entry.treated ? 'treated' : 'untreated'}">
+              ${entry.treated ? 'Treated' : 'Untreated'}
+            </span>
+            <button class="list-entry-edit" onclick="event.stopPropagation(); openEditModal('${entry.id}')">Edit</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterListEntries() {
+      listSearchQuery = document.getElementById('listSearchInput').value.toLowerCase();
+      renderListEntries();
+    }
+
+    function setListFilter(filter) {
+      currentListFilter = filter;
+      document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.classList.remove('active');
+      });
+      document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+    }
+
+    function selectFromList(id) {
+      displayEntry(id);
+      switchMainView('map');
+    }
+
+    function displayEntry(id) {
+      const entry = window.entries.find(e => e.id === id);
+      if (!entry) return;
+
+      selectedEntryId = id;
+      const treated = entry.treated;
+
+      // Show address or intersection
+      const displayAddress = entry.address || 'No address';
+      const subtitle = entry.intersection ? `${entry.intersection}` : formatDate(entry.entryDate);
+
+      const cardHtml = `
+        ${entry.photo ? `<div class="card-photo"><img src="${entry.photo}" alt="Entry photo"></div>` : ''}
+        <div class="location-header">
+          <div class="location-title">
+            <h2>${escapeHtml(displayAddress)}</h2>
+            <div class="location-subtitle">${escapeHtml(subtitle)}</div>
+            ${entry.intersection ? `<div class="location-subtitle" style="font-size: 11px; color: #9ca3af;">Found ${formatDate(entry.entryDate)}</div>` : ''}
+            <div class="location-address">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path>
+                <path d="M19.6 14.3a9 9 0 0 1-9.814-9.316 2 2 0 0 0-2.182-.183A9.375 9.375 0 1 0 20 13.25"></path>
+              </svg>
+              <span>${escapeHtml(displayAddress)}</span>
+            </div>
+          </div>
+          <span class="status-badge ${treated ? 'treated' : 'untreated'}">
+            ${treated ? '✓ Treated' : '○ Untreated'}
+          </span>
+        </div>
+
+        <div class="quick-toggle">
+          <label class="toggle-label">Mark as Treated</label>
+          <input type="checkbox" class="toggle-checkbox" ${treated ? 'checked' : ''} onchange="quickToggleTreated('${id}', this.checked)">
+        </div>
+
+        ${entry.description ? `
+          <div class="description-section">
+            <div class="description-label">Description</div>
+            <div class="description-text">${escapeHtml(entry.description)}</div>
+          </div>
+        ` : ''}
+
+        <div class="metrics">
+          <div class="metric">
+            <div class="metric-label">Date Found</div>
+            <div class="metric-value">
+              <span>${formatDate(entry.entryDate)}</span>
+            </div>
+          </div>
+        </div>
+
+        ${entry.latitude && entry.longitude ? `
+          <div class="coordinates">
+            <div class="coord">
+              <div class="coord-label">Latitude</div>
+              <div class="coord-value">${entry.latitude.toFixed(4)}</div>
+            </div>
+            <div class="coord">
+              <div class="coord-label">Longitude</div>
+              <div class="coord-value">${entry.longitude.toFixed(4)}</div>
+            </div>
+          </div>
+        ` : ''}
+
+        ${treated && entry.treatmentDate ? `
+          <div style="padding: 12px; background: #f9fafb; border-radius: 10px; font-size: 13px;">
+            <span style="color: #6b7280;">Treated on ${formatDate(entry.treatmentDate)}</span>
+          </div>
+        ` : ''}
+
+        <div class="action-buttons">
+          <button onclick="openEditModal('${entry.id}')">Edit</button>
+          <button class="secondary" onclick="deleteEntry('${entry.id}')">Delete</button>
+        </div>
+      `;
+
+      document.getElementById('selectedCard').innerHTML = cardHtml;
+    }
+
+    function openAddModal() {
+      document.getElementById('addModal').classList.add('active');
+      document.querySelector('.backdrop').classList.add('active');
+    }
+
+    function closeAddModal() {
+      document.getElementById('addModal').classList.remove('active');
+      document.querySelector('.backdrop').classList.remove('active');
+    }
+
+    function openEditModal(id) {
+      const entry = window.entries.find(e => e.id === id);
+      if (!entry) return;
+
+      currentEditId = id;
+      document.getElementById('editId').value = id;
+      document.getElementById('editAddress').value = entry.address;
+      document.getElementById('editIntersection').value = entry.intersection || '';
+      document.getElementById('editLatitude').value = entry.latitude || '';
+      document.getElementById('editLongitude').value = entry.longitude || '';
+      document.getElementById('editEntryDate').value = entry.entryDate;
+      document.getElementById('editDescription').value = entry.description;
+      document.getElementById('editTreated').checked = entry.treated;
+      document.getElementById('editTreatmentDate').value = entry.treatmentDate || '';
+      document.getElementById('editTreatmentDateGroup').classList.toggle('hidden', !entry.treated);
+
+      // Load existing photo if available
+      editPhotoData = null;
+      document.getElementById('editPhotoPreview').innerHTML = '';
+      if (entry.photo) {
+        displayPhotoPreview(entry.photo, 'editPhotoPreview');
+        editPhotoData = entry.photo;
+      }
+
+      document.getElementById('editModal').classList.add('active');
+      document.querySelector('.backdrop').classList.add('active');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.remove('active');
+      document.querySelector('.backdrop').classList.remove('active');
+      currentEditId = null;
+    }
+
+    function closeAllModals() {
+      closeAddModal();
+      closeEditModal();
+    }
+
+    async function submitEdit(e) {
+      e.preventDefault();
+
+      const entry = {
+        address: document.getElementById('editAddress').value,
+        intersection: document.getElementById('editIntersection').value || null,
+        description: document.getElementById('editDescription').value,
+        entryDate: document.getElementById('editEntryDate').value,
+        treated: document.getElementById('editTreated').checked,
+        treatmentDate: document.getElementById('editTreated').checked ? document.getElementById('editTreatmentDate').value : null
+      };
+
+      // Only include photo if it was changed
+      if (editPhotoData) {
+        entry.photo = editPhotoData;
+      }
+
+      try {
+        const res = await fetch(`${API}/${currentEditId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(entry)
+        });
+
+        if (res.ok) {
+          closeEditModal();
+          loadEntries();
+          displayEntry(currentEditId);
+        }
+      } catch (err) {
+        alert('Error updating entry');
+      }
+    }
+
+    async function deleteEntry(id) {
+      if (!confirm('Are you sure you want to delete this entry? This action cannot be undone.')) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          closeEditModal();
+          selectedEntryId = null;
+          loadEntries();
+        }
+      } catch (err) {
+        alert('Error deleting entry');
+      }
+    }
+
+    async function quickToggleTreated(id, treated) {
+      try {
+        const res = await fetch(`${API}/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            treated: treated,
+            treatmentDate: treated ? new Date().toISOString().split('T')[0] : null
+          })
+        });
+
+        if (res.ok) {
+          await loadEntries();
+          displayEntry(id);
+        }
+      } catch (err) {
+        alert('Error updating treatment status');
+      }
+    }
+
+    function initializeMap() {
+      try {
+        if (typeof L === 'undefined') return;
+
+        const container = document.getElementById('mapContainer');
+        if (!container) return;
+
+        if (mapInstance) {
+          mapInstance.invalidateSize();
+          renderMapMarkers();
+          return;
+        }
+
+        const entries = window.entries || [];
+        const withCoords = entries.filter(e => e.latitude && e.longitude);
+
+        let centerLat = 34;
+        let centerLng = -118;
+
+        if (withCoords.length > 0) {
+          centerLat = withCoords.reduce((sum, e) => sum + e.latitude, 0) / withCoords.length;
+          centerLng = withCoords.reduce((sum, e) => sum + e.longitude, 0) / withCoords.length;
+        }
+
+        mapInstance = L.map('mapContainer').setView([centerLat, centerLng], 10);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+          maxZoom: 20
+        }).addTo(mapInstance);
+
+        renderMapMarkers();
+      } catch (err) {
+        console.error('Error initializing map:', err);
+      }
+    }
+
+    function renderMapMarkers() {
+      if (!mapInstance) return;
+
+      Object.values(markers).forEach(marker => {
+        try {
+          mapInstance.removeLayer(marker);
+        } catch (e) {}
+      });
+      markers = {};
+
+      const entries = window.entries || [];
+      const withCoords = entries.filter(e => e.latitude && e.longitude);
+
+      withCoords.forEach(entry => {
+        const color = entry.treated ? '#10b981' : '#f59e0b';
+        const icon = L.divIcon({
+          className: 'custom-marker',
+          html: `<div style="background: ${color}; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.25); cursor: pointer;"></div>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12],
+          popupAnchor: [0, -16]
+        });
+
+        const marker = L.marker([entry.latitude, entry.longitude], { icon })
+          .addTo(mapInstance);
+
+        marker.on('click', () => {
+          displayEntry(entry.id);
+        });
+
+        markers[entry.id] = marker;
+      });
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Dark Mode
+    function initializeDarkMode() {
+      const isDarkMode = localStorage.getItem('darkMode') === 'true';
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+      if (isDarkMode || (isDarkMode === null && prefersDark)) {
+        enableDarkMode();
+      }
+    }
+
+    function toggleDarkMode() {
+      const isDarkMode = document.body.classList.contains('dark-mode');
+
+      if (isDarkMode) {
+        disableDarkMode();
+      } else {
+        enableDarkMode();
+      }
+    }
+
+    function enableDarkMode() {
+      document.body.classList.add('dark-mode');
+      document.getElementById('themeToggle').textContent = '☀️';
+      localStorage.setItem('darkMode', 'true');
+    }
+
+    function disableDarkMode() {
+      document.body.classList.remove('dark-mode');
+      document.getElementById('themeToggle').textContent = '🌙';
+      localStorage.setItem('darkMode', 'false');
+    }
+  </script>
+</body>
+</html>

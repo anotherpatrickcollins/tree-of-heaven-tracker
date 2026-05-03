@@ -1,0 +1,50 @@
+[
+  {
+    "id": "1777777588047",
+    "address": "Patrick's home",
+    "latitude": 45.560627,
+    "longitude": -122.667008,
+    "description": "",
+    "entryDate": "2026-05-03",
+    "treated": false,
+    "treatmentDate": null,
+    "createdAt": "2026-05-03T03:06:28.047Z",
+    "updatedAt": "2026-05-03T16:54:11.011Z"
+  },
+  {
+    "id": "1777779501820",
+    "address": "Home",
+    "latitude": 45.560627,
+    "longitude": -122.667008,
+    "description": "",
+    "entryDate": "2026-05-03",
+    "treated": false,
+    "treatmentDate": null,
+    "createdAt": "2026-05-03T03:38:21.820Z",
+    "updatedAt": "2026-05-03T03:38:21.820Z"
+  },
+  {
+    "id": "1777785137180",
+    "address": "Home Again",
+    "latitude": 45.560627,
+    "longitude": -122.667008,
+    "description": "",
+    "entryDate": "2026-05-03",
+    "treated": false,
+    "treatmentDate": null,
+    "createdAt": "2026-05-03T05:12:17.180Z",
+    "updatedAt": "2026-05-03T05:12:17.180Z"
+  },
+  {
+    "id": "1777826052592",
+    "address": "With a photo",
+    "latitude": null,
+    "longitude": null,
+    "description": "",
+    "entryDate": "2026-05-03",
+    "treated": false,
+    "treatmentDate": null,
+    "createdAt": "2026-05-03T16:34:12.593Z",
+    "updatedAt": "2026-05-03T16:49:40.716Z"
+  }
+]
